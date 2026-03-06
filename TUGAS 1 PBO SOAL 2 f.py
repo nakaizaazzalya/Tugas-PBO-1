@@ -8,9 +8,6 @@ class Restaurant:
     def describe_restaurant(self):
         print(f"{self.restaurant_name} is a restaurant that serves {self.cuisine_type} food.")
 
-    def open_restaurant(self):
-        print(f"{self.restaurant_name} is now open.")
-
 restaurant1 = Restaurant("Warung Mak Beng", "Indonesian")
 restaurant2 = Restaurant("La Tavola", "Italian")
 restaurant3 = Restaurant("El Rancho", "Mexican")
@@ -18,3 +15,4 @@ restaurant3 = Restaurant("El Rancho", "Mexican")
 restaurant1.describe_restaurant()
 restaurant2.describe_restaurant()
 restaurant3.describe_restaurant()
+
