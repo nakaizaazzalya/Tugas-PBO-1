@@ -1,0 +1,143 @@
+from abc import ABC, abstractmethod  # import untuk abstract class
+
+# ======================
+# SUPERCLASS
+# ======================
+class User:
+    def __init__(self, nama):
+        self.nama = nama   # public attribute (bisa diakses bebas)
+
+
+# ======================
+# SUBCLASS (INHERITANCE)
+# ======================
+class Anggota(User):   # mewarisi dari class User
+    def __init__(self, id_anggota, nama):
+        super().__init__(nama)  # memanggil constructor parent
+        self.__id_anggota = id_anggota   # private (name mangling)
+        self.peminjaman_list = []        # public (aggregation: menyimpan banyak transaksi)
+
+    def pinjamBuku(self, transaksi):
+        self.peminjaman_list.append(transaksi)  # menambahkan objek transaksi ke list
+
+    def show(self):
+        print("ID Anggota:", self.__id_anggota)
+        print("Nama:", self.nama)
+        print("Daftar Transaksi:")
+        for t in self.peminjaman_list:
+            print("-", t)   # memanggil __str__ (polymorphism)
+
+    def lihatBuku(self):
+        for t in self.peminjaman_list:
+            print(t)   # polymorphism (__str__ otomatis dipanggil)
+
+
+class Petugas(User):   # subclass dari User
+    def __init__(self, id_petugas, nama):
+        super().__init__(nama)
+        self.id_petugas = id_petugas   # public
+
+    def prosesTransaksi(self, transaksi):
+        transaksi.proses()   # polymorphism (method sama, beda perilaku)
+
+
+# ======================
+# CLASS BUKU
+# ======================
+class Buku:
+    def __init__(self, id_buku, judul, stok):
+        if stok < 0:
+            raise ValueError("Stok tidak boleh negatif")  # validasi
+        self.__id_buku = id_buku   # private (name mangling)
+        self.judul = judul         # public
+        self._stok = stok          # protected (tidak dianjurkan akses langsung)
+
+    # ======================
+    # PROPERTY (getter)
+    # ======================
+    @property
+    def stok(self):
+        return self._stok   # mengambil nilai stok
+
+    # ======================
+    # PROPERTY (setter)
+    # ======================
+    @stok.setter
+    def stok(self, value):
+        if value < 0:
+            raise ValueError("Stok tidak boleh negatif")  # validasi data
+        self._stok = value
+
+    def get_id_buku(self):
+        return self.__id_buku   # akses private lewat method
+
+
+# ======================
+# ABSTRACT CLASS (ABSTRACTION)
+# ======================
+class Transaksi(ABC):
+    @abstractmethod
+    def proses(self):
+        pass   # method wajib diimplementasikan subclass
+
+
+# ======================
+# SUBCLASS TRANSAKSI (POLYMORPHISM)
+# ======================
+class Peminjaman(Transaksi):
+    def __init__(self, anggota, buku):
+        self.anggota = anggota   # association (relasi dengan anggota)
+        self.buku = buku         # association (relasi dengan buku)
+        self.status = "Belum diproses"   # public
+
+    def proses(self):
+        if self.buku.stok > 0:   # pakai property
+            self.buku.stok -= 1  # setter dipanggil
+            self.status = "Dipinjam"
+            print(f"{self.anggota.nama} meminjam {self.buku.judul}")
+        else:
+            print("Buku tidak tersedia")
+
+    def __str__(self):
+        return f"{self.buku.judul} ({self.buku.get_id_buku()}) - {self.status}"  
+        # digunakan saat print object (polymorphism)
+
+
+class Pengembalian(Transaksi):
+    def __init__(self, anggota, buku):
+        self.anggota = anggota
+        self.buku = buku
+        self.status = "Belum diproses"
+
+    def proses(self):
+        self.buku.stok += 1   # menambah stok (setter)
+        self.status = "Dikembalikan"
+        print(f"{self.anggota.nama} mengembalikan {self.buku.judul}")
+
+    def __str__(self):
+        return f"{self.buku.judul} ({self.buku.get_id_buku()}) - {self.status}"
+
+
+# ======================
+# IMPLEMENTASI
+# ======================
+
+anggota = Anggota("A01", "Budi")   # membuat objek anggota
+buku = Buku("B01", "Python Dasar", 2)   # membuat objek buku
+petugas = Petugas("P01", "Siti")   # membuat objek petugas
+
+# transaksi peminjaman
+pinjam = Peminjaman(anggota, buku)
+anggota.pinjamBuku(pinjam)   # agregasi (menyimpan transaksi)
+petugas.prosesTransaksi(pinjam)   # polymorphism
+
+# transaksi pengembalian
+kembali = Pengembalian(anggota, buku)
+anggota.pinjamBuku(kembali)
+petugas.prosesTransaksi(kembali)
+
+print("\nData Anggota:")
+anggota.show()
+
+print("\nRiwayat:")
+anggota.lihatBuku()
